@@ -2,6 +2,12 @@ import streamlit as st
 import requests
 import csv
 import io
+import base64
+
+def get_download_link(data, file_name):
+    b64 = base64.b64encode(data.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64}" download="{file_name}">Download {file_name}</a>'
+    return href
 
 def get_go_docs(event_id):
     url = f"https://goadmin.ifrc.org/api/v2/situation_report/?event={event_id}"
@@ -49,13 +55,8 @@ st.title("IFRC API - Retrieve SitReps by Event")
 
 id_to_search = st.number_input("Enter Event ID to Search", value=5027, step=1)
 
-# button to trigger data retrieval and download CSV file
+# Button to trigger data retrieval and provide a link for manual download
 if st.button("Retrieve Data"):
     csv_data = get_go_docs(id_to_search)
-    st.download_button(
-        label="Download CSV",
-        data=csv_data,
-        file_name="output.csv",
-        mime="text/csv"
-    )
-    st.success("Data retrieved successfully!")
+    st.write("Data retrieved successfully! Click the link below to download the CSV file.")
+    st.markdown(get_download_link(csv_data, "output.csv"), unsafe_allow_html=True)
