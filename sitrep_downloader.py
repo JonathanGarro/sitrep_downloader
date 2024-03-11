@@ -4,6 +4,7 @@ import csv
 import io
 import base64
 
+# download link generator
 def get_download_link(data, file_name):
     b64 = base64.b64encode(data.encode()).decode()
     href = f'<a href="data:file/csv;base64,{b64}" download="{file_name}">Download {file_name}</a>'
