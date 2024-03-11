@@ -1,12 +1,13 @@
 import streamlit as st
 import requests
 import csv
+import io
 
 def get_go_docs(event_id):
     url = f"https://goadmin.ifrc.org/api/v2/situation_report/?event={event_id}"
     result_list = []
     page_count = 0
-    page_limit = 10  # set a page limit if looking at big event
+    page_limit = 10  # set a page limit if looking at a big event
     
     while url and page_count < page_limit:
         response = requests.get(url)
@@ -35,17 +36,26 @@ def get_go_docs(event_id):
         url = data.get("next")
         page_count += 1
     
+    # create a CSV file in memory
+    csv_data = io.StringIO()
     keys = result_list[0].keys()
-    with open("output.csv", "w", newline="") as a_file:
-        dict_writer = csv.DictWriter(a_file, keys)
-        dict_writer.writeheader()
-        dict_writer.writerows(result_list)
+    dict_writer = csv.DictWriter(csv_data, keys)
+    dict_writer.writeheader()
+    dict_writer.writerows(result_list)
+    
+    return csv_data.getvalue()
 
-st.title("IFRC API Data Retrieval")
+st.title("IFRC API - Retrieve SitReps by Event")
 
 id_to_search = st.number_input("Enter Event ID to Search", value=5027, step=1)
 
+# button to trigger data retrieval and download CSV file
 if st.button("Retrieve Data"):
-    get_go_docs(id_to_search)
+    csv_data = get_go_docs(id_to_search)
+    st.download_button(
+        label="Download CSV",
+        data=csv_data,
+        file_name="output.csv",
+        mime="text/csv"
+    )
     st.success("Data retrieved successfully!")
-
